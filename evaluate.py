@@ -4,49 +4,68 @@ import numpy as np
 import joblib
 import os
 
-# Load historical price and engineered features
+# Load engineered data
 df = pd.read_csv("data/bitcoin_features.csv")
 
-feature_cols = [
-    "Return",
-    "Return_Lag_1",
-    "Return_Lag_2",
-    "Moving_Average_7",
-    "Volatility_7"
-]
+# Load exact features used during training
+feature_path = "models/feature_columns.joblib"
 
+if not os.path.exists(feature_path):
+    raise FileNotFoundError(
+        "Feature list nahi mili. Pehle python model.py run karo."
+    )
+
+feature_cols = joblib.load(feature_path)
 target_col = "Target_n_plus_1"
 
-df = df.dropna(subset=feature_cols + [target_col]).copy()
+# Validate required columns
+required_cols = feature_cols + [target_col, "Close"]
+missing = [col for col in required_cols if col not in df.columns]
 
-# Chronological split: train on earlier data, evaluate later data
+if missing:
+    raise ValueError(f"Required columns missing: {missing}")
+
+# Convert model features to numeric
+for col in feature_cols + [target_col, "Close"]:
+    df[col] = pd.to_numeric(df[col], errors="coerce")
+
+df = df.replace([np.inf, -np.inf], np.nan)
+
+# Match prediction-time preprocessing
+df[feature_cols] = df[feature_cols].fillna(0)
+df = df.dropna(subset=[target_col, "Close"]).copy()
+
+if len(df) < 30:
+    raise ValueError("Evaluation ke liye enough data nahi hai.")
+
+# Chronological holdout evaluation
 split = int(len(df) * 0.8)
 test = df.iloc[split:].copy()
 
-model = joblib.load("models/model_n_plus_1.joblib")
+if test.empty:
+    raise ValueError("Test data available nahi hai.")
 
+model = joblib.load("models/model_n_plus_1.joblib")
 predictions = model.predict(test[feature_cols])
 
-# Simple illustrative strategy:
-# hold BTC when predicted next-period price exceeds current price
 current_prices = test["Close"].to_numpy()
 actual_next_prices = test[target_col].to_numpy()
 
 actual_returns = (actual_next_prices / current_prices) - 1
 signals = (predictions > current_prices).astype(float)
 
-strategy_returns = signals * actual_returns
-strategy_returns = pd.Series(strategy_returns).replace(
-    [np.inf, -np.inf], np.nan
-).dropna()
+strategy_returns = pd.Series(
+    signals * actual_returns
+).replace([np.inf, -np.inf], np.nan).dropna()
 
 if strategy_returns.empty:
     raise ValueError("No valid strategy returns to evaluate.")
 
-# Daily risk-free rate assumed to be zero
+std = strategy_returns.std(ddof=1)
+
 sharpe = (
-    np.sqrt(365) * strategy_returns.mean() / strategy_returns.std(ddof=1)
-    if len(strategy_returns) > 1 and strategy_returns.std(ddof=1) > 0
+    np.sqrt(365) * strategy_returns.mean() / std
+    if len(strategy_returns) > 1 and std > 0
     else np.nan
 )
 
@@ -78,6 +97,6 @@ print("\nEvaluation metrics calculated:")
 print(report.to_string(index=False))
 print("\nSaved to reports/evaluation_metrics.csv")
 print(
-    "\nImportant: This is an initial illustrative backtest, "
-    "not the final validated assignment result."
+    "\nNote: This is a basic holdout backtest, "
+    "not rigorous walk-forward validation."
 )
