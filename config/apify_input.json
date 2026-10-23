@@ -1,0 +1,9 @@
+{
+  "searchTerms": ["Bitcoin", "$BTC", "BTC"],
+  "maxTweets": 5,
+  "maxTotalTweets": 10,
+  "sort": "Latest",
+  "startDate": "2026-04-26",
+  "endDate": "2026-10-24",
+  "language": "en"
+}
