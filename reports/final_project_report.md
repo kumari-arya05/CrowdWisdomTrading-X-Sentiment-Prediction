@@ -1,34 +1,5 @@
-@'
-# CrowdWisdomTrading — X Sentiment Price Prediction
+﻿# CrowdWisdomTrading — X Sentiment Price Prediction
 
-## 1. Project Overview
-This project explores Bitcoin price forecasting using historical price data, X post sentiment, and cryptocurrency news sentiment.
-
-## 2. Dataset
-- Historical Bitcoin price rows: 179
-- News records matched to price dates: 10
-- X post data: Limited; the sample is insufficient to represent overall market sentiment.
-
-## 3. Feature Engineering
-The dataset combines historical OHLCV price data, X sentiment scores, post counts, and daily news sentiment features.
-
-## 4. Walk-Forward Evaluation
-
-| Horizon | Observations | MAE | Sharpe Ratio | Sortino Ratio | Maximum Drawdown |
-|---|---:|---:|---:|---:|---:|
-| n+0 | 89 | 9403.81 | 6.78 | 22.38 | -13.39% |
-| n+1 | 88 | 9365.25 | 6.68 | 19.47 | -13.96% |
-| n+2 | 87 | 9263.67 | 5.97 | 14.28 | -13.93% |
-| n+3 | 86 | 9324.49 | 4.10 | 7.62 | -14.98% |
-| n+4 | 85 | 9326.41 | 5.78 | 12.76 | -14.90% |
-| n+5 | 84 | 9353.57 | 4.86 | 10.86 | -14.65% |
-
-## 5. Limitations
-The X post sample is very small, and only 10 news records matched the price dates. Trading metrics are preliminary and do not establish reliable or profitable trading performance.
-
-## 6. Conclusion
-This project demonstrates a preliminary workflow for combining price, social sentiment, and news data. Results are experimental and should not be treated as investment advice.
-'@ | Set-Content reports\final_project_report.md -Encoding UTF8
 ## 1. Project Overview
 This project explores Bitcoin price forecasting using historical price data, X post sentiment, and cryptocurrency news sentiment.
 
